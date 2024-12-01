@@ -12,14 +12,14 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        php: [8.4, 8.3]
-        laravel: [11.*, 10.*]
-        stability: [prefer-lowest, prefer-stable]
+        os: [ ubuntu-latest, windows-latest ]
+        php: [ 8.4, 8.3 ]
+        laravel: [ 11.*, 10.* ]
+        stability: [ prefer-lowest, prefer-stable ]
         include:
           - laravel: 11.*
             testbench: 9.*
@@ -28,12 +28,14 @@ jobs:
             testbench: 8.*
             carbon: ^2.63
 
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
+    name: PHP${{ matrix.php }} - Laravel${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
     steps:
+      # Checkout the code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Set up PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -41,18 +43,47 @@ jobs:
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
           coverage: none
 
+      # Problem matchers for better log parsing
       - name: Setup problem matchers
         run: |
           echo "::add-matcher::${{ runner.tool_cache }}/php.json"
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
+      # Cache Composer dependencies
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ matrix.php }}-${{ matrix.laravel }}-${{ matrix.stability }}-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php }}-
+
+      # Install dependencies
       - name: Install dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "nesbot/carbon:${{ matrix.os == 'windows-latest' && '^^^' || '' }}${{ matrix.carbon }}" --no-interaction --no-update
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction
 
+      # List installed dependencies
       - name: List Installed Dependencies
         run: composer show -D
 
+      # Run Pint for code formatting (Optional)
+      - name: Run Pint
+        run: composer format
+
+      # Run PHPStan for static analysis (Optional)
+      - name: Run PHPStan
+        run: composer analyse
+
+      # Execute tests
       - name: Execute tests
         run: vendor/bin/pest --ci
+
+      # Upload test coverage report (Optional)
+      - name: Upload coverage report
+        if: success() && matrix.stability == 'prefer-stable'
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-coverage
+          path: coverage/
