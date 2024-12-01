@@ -7,6 +7,7 @@ use Skillcraft\PsychicFishstick\PsychicFishstickService;
 
 /**
  * @method static mixed process(mixed $data, array $pipes)
+ *
  * @see PsychicFishstickService
  */
 class PsychicFishstick extends Facade

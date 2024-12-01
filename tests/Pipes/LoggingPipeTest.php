@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Log;
 use Skillcraft\PsychicFishstick\Pipes\LoggingPipe;
 
-
 it('logs the message and passes data to the next pipe', function () {
     // Mock the Log facade
     Log::spy();

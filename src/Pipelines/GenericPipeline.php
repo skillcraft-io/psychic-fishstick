@@ -7,6 +7,7 @@ use Illuminate\Pipeline\Pipeline;
 class GenericPipeline
 {
     protected mixed $data;
+
     protected array $pipes;
 
     public function __construct(mixed $data, array $pipes)

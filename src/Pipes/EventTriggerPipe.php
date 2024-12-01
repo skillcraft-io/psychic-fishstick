@@ -19,8 +19,8 @@ class EventTriggerPipe
     /**
      * Constructor to initialize the pipe with the event class and data.
      *
-     * @param string $eventClass The event class to trigger.
-     * @param array $eventData Data to pass to the event.
+     * @param  string  $eventClass  The event class to trigger.
+     * @param  array  $eventData  Data to pass to the event.
      */
     public function __construct(string $eventClass, array $eventData = [])
     {
@@ -30,10 +30,6 @@ class EventTriggerPipe
 
     /**
      * Handle the pipeline step.
-     *
-     * @param mixed $data
-     * @param Closure $next
-     * @return mixed
      */
     public function handle(mixed $data, Closure $next): mixed
     {

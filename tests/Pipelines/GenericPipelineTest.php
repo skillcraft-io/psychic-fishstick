@@ -1,6 +1,5 @@
 <?php
 
-
 use Skillcraft\PsychicFishstick\Pipelines\GenericPipeline;
 
 it('processes data through a generic pipeline', function () {
@@ -9,10 +8,12 @@ it('processes data through a generic pipeline', function () {
     $pipes = [
         function ($data, $next) {
             $data['step1'] = 'Processed in Step1';
+
             return $next($data);
         },
         function ($data, $next) {
             $data['step2'] = 'Processed in Step2';
+
             return $next($data);
         },
     ];

@@ -1,5 +1,5 @@
 <?php
-use Illuminate\Support\Facades\Validator;
+
 use Skillcraft\PsychicFishstick\Pipes\ValidationPipe;
 
 it('passes validation when data meets the rules', function () {

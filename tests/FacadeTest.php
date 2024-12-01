@@ -8,17 +8,18 @@ test('the facade accessor for PsychicFishstick should return PsychicFishstickSer
     expect(PsychicFishstick::getFacadeRoot())->toBeInstanceOf($expectedFacadeAccessor);
 });
 
-
 it('processes data through a generic pipeline', function () {
     $data = ['name' => 'John Doe'];
 
     $pipes = [
         function ($data, $next) {
             $data['step1'] = 'Processed in Step1';
+
             return $next($data);
         },
         function ($data, $next) {
             $data['step2'] = 'Processed in Step2';
+
             return $next($data);
         },
     ];

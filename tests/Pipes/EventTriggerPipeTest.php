@@ -1,6 +1,8 @@
 <?php
+
 use Illuminate\Support\Facades\Event;
 use Skillcraft\PsychicFishstick\Pipes\EventTriggerPipe;
+
 it('triggers an anonymous event and passes data to the next pipe', function () {
     // Mock the Event facade
     Event::fake();
@@ -12,7 +14,8 @@ it('triggers an anonymous event and passes data to the next pipe', function () {
     ]);
 
     // Use an anonymous event class
-    $eventClass = new class($data) {
+    $eventClass = new class($data)
+    {
         public $data;
 
         public function __construct($data)

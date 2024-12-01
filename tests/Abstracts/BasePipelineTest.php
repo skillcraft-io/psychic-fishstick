@@ -22,17 +22,21 @@ class TestPipeline extends BasePipeline
     {
         return [
             // Simple pipes for testing
-            new class {
+            new class
+            {
                 public function handle($data, \Closure $next)
                 {
                     $data['step1'] = true;
+
                     return $next($data);
                 }
             },
-            new class {
+            new class
+            {
                 public function handle($data, \Closure $next)
                 {
                     $data['step2'] = true;
+
                     return $next($data);
                 }
             },
