@@ -20,8 +20,8 @@
     ],
     "require": {
         "php": "^8.3||^8.4",
-        "illuminate/pipeline": "^10.0||^11.0",
-        "illuminate/events": "^10.0||^11.0"
+        "illuminate/pipeline": "^10.0|^11.0",
+        "illuminate/events": "^10.0|^11.0"
     },
     "require-dev": {
         "laravel/pint": "^1.14",
