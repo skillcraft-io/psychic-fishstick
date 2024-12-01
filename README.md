@@ -1,93 +1,340 @@
-# :package_description
+# Laravel Pipeline Package
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
+A reusable and extensible pipeline package for Laravel applications.
+This package provides a base pipeline class to process data through a series of customizable steps (pipes).
+It adheres to Laravel's `Illuminate\Pipeline` component, making it ideal for workflows that require sequential
+processing.
+
 ---
-This repo can be used to scaffold a Laravel package. Follow these steps to get started:
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Have fun creating your package.
-4. If you need help creating a package, consider picking up our <a href="https://laravelpackage.training">Laravel Package Training</a> video course.
+## Features
+
+- **BasePipeline**: Abstract class to define structured pipelines.
+- **Reusable Pipes**: Create reusable steps for common processing logic.
+- **Extensible**: Customize pipelines for various workflows.
+- **Tested**: Fully unit-tested with 100% code coverage.
+
 ---
-<!--/delete-->
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
-
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/:package_name.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/:package_name)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
 
 ## Installation
 
-You can install the package via composer:
+Install the package via Composer:
 
 ```bash
-composer require :vendor_slug/:package_slug
+composer require your-vendor/pipeline
 ```
 
-You can publish and run the migrations with:
+## Defining a Pipeline
 
-```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
-php artisan migrate
-```
-
-You can publish the config file with:
-
-```bash
-php artisan vendor:publish --tag=":package_slug-config"
-```
-
-This is the contents of the published config file:
+Extend the ```BasePipeline``` class to create your pipeline:
 
 ```php
-return [
+use Skillcraft\PsychicFishstick\Abstracts\BasePipeline;
+
+class ExamplePipeline extends BasePipeline
+{
+    protected mixed $data;
+
+    public function __construct(mixed $data)
+    {
+        $this->data = $data;
+    }
+
+    protected function getInitialData(): mixed
+    {
+        return $this->data;
+    }
+
+    protected function pipes(): array
+    {
+        return [
+            \App\Pipes\StepOne::class,
+            \App\Pipes\StepTwo::class,
+        ];
+    }
+}
+```
+
+## GenericPipeline
+
+The GenericPipeline class is a flexible option for creating pipelines without defining a dedicated class.
+It is ideal for simple workflows.
+
+```php
+use Skillcraft\PsychicFishstick\Pipelines\GenericPipeline;
+
+// Mock data
+$data = ['name' => 'Jane Doe'];
+
+// Define pipes
+$pipes = [
+    \App\Pipes\StepOne::class,
+    \App\Pipes\StepTwo::class,
 ];
+
+// Instantiate and execute the pipeline
+$pipeline = new GenericPipeline($data, $pipes);
+$result = $pipeline->execute();
+
+print_r($result);
+
+/*
+Output:
+[
+    'name' => 'Jane Doe',
+    'step_one' => 'Processed by StepOne',
+    'step_two' => 'Processed by StepTwo',
+]
+*/
 ```
 
-Optionally, you can publish the views using
+## When to Use `GenericPipeline` vs. `BasePipeline`
 
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
-```
+| Use Case           | `GenericPipeline`                           | `BasePipeline`                               |
+|--------------------|---------------------------------------------|----------------------------------------------|
+| Simple workflows   | Ideal for one-off or straightforward cases. | Overhead of defining a class is unnecessary. |
+| Reusable workflows | Can work but lacks structured organization. | Better suited for well-defined pipelines.    |
+| Extensibility      | Less extensible without adding complexity.  | Encourages a structured, extensible design.  |
+| Type safety        | Not enforced for pipes or data.             | Ensures strict contracts and uniformity.     |
 
-## Usage
+## Creating Pipes
+
+A pipe is a step in the pipeline. Each pipe processes the data and passes it to the next step.
 
 ```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
+namespace App\Pipes;
+
+use Closure;
+
+class StepOne
+{
+    public function handle($data, Closure $next)
+    {
+        $data['step_one'] = 'Processed by StepOne';
+
+        return $next($data);
+    }
+}
 ```
+
+Another example:
+
+```php
+namespace App\Pipes;
+
+use Closure;
+
+class StepTwo
+{
+    public function handle($data, Closure $next)
+    {
+        $data['step_two'] = 'Processed by StepTwo';
+
+        return $next($data);
+    }
+}
+```
+
+## Executing the Pipeline
+
+Use your pipeline to process data:
+
+```php
+$data = ['name' => 'John Doe'];
+
+$pipeline = new ExamplePipeline($data);
+$result = $pipeline->execute();
+
+print_r($result);
+
+/*
+Output:
+[
+    'name' => 'John Doe',
+    'step_one' => 'Processed by StepOne',
+    'step_two' => 'Processed by StepTwo',
+]
+*/
+```
+
+## Example: LoggingPipe
+
+A reusable pipe for logging messages.
+
+```php
+namespace Skillcraft\PsychicFishstick\Pipes;
+
+use Closure;
+use Illuminate\Support\Facades\Log;
+
+class LoggingPipe
+{
+    protected string $message;
+
+    public function __construct(string $message)
+    {
+        $this->message = $message;
+    }
+
+    public function handle($data, Closure $next)
+    {
+        Log::info($this->message, ['data' => $data]);
+
+        return $next($data);
+    }
+}
+```
+
+## Using LoggingPipe in a Pipeline
+
+```php
+use Skillcraft\PsychicFishstick\Abstracts\BasePipeline;
+use Skillcraft\PsychicFishstick\Pipes\LoggingPipe;
+
+class YourLoggingPipeline extends BasePipeline
+{
+    protected mixed $data;
+
+    public function __construct(mixed $data)
+    {
+        $this->data = $data;
+    }
+
+    protected function getInitialData(): mixed
+    {
+        return $this->data;
+    }
+
+    protected function pipes(): array
+    {
+        return [
+            new LoggingPipe('Processing data in the pipeline'),
+        ];
+    }
+}
+
+$data = ['key' => 'value'];
+$pipeline = new LoggingPipeline($data);
+$result = $pipeline->execute();
+```
+
+## Example: EventTriggerPipe
+
+A reusable pipe for dispatching events.
+
+```php
+namespace Skillcraft\PsychicFishstick\Pipes;
+
+use Closure;
+
+class EventTriggerPipe
+{
+    protected string $eventClass;
+    protected array $eventData;
+
+    public function __construct(string $eventClass, array $eventData = [])
+    {
+        $this->eventClass = $eventClass;
+        $this->eventData = $eventData;
+    }
+
+    public function handle($data, Closure $next)
+    {
+        event(new $this->eventClass($data, ...$this->eventData));
+
+        return $next($data);
+    }
+}
+```
+
+## Using EventTriggerPipe in a Pipeline
+
+```php
+use Skillcraft\PsychicFishstick\Abstracts\BasePipeline;
+use Skillcraft\PsychicFishstick\Pipes\EventTriggerPipe;
+
+class EventPipeline extends BasePipeline
+{
+    protected mixed $data;
+
+    public function __construct(mixed $data)
+    {
+        $this->data = $data;
+    }
+
+    protected function getInitialData(): mixed
+    {
+        return $this->data;
+    }
+
+    protected function pipes(): array
+    {
+        return [
+            new EventTriggerPipe(\App\Events\DataProcessed::class, ['extra' => 'value']),
+        ];
+    }
+}
+
+$data = ['key' => 'value'];
+$pipeline = new EventPipeline($data);
+$result = $pipeline->execute();
+```
+
+## Development
+
+## DDEV Setup
+
+This package includes **DDEV** for local environment management, ensuring an easy-to-use, consistent development
+environment.
+
+### **Prerequisites**
+
+- Install [DDEV](https://ddev.readthedocs.io/en/stable/).
+
+### **Setup Steps**
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/skillcraft-io/psychic-fishstick.git
+   cd psychic-fishstick
+   ```
+
+2. Start the DDEV environment:
+   ```bash
+   ddev start
+   ```
+
+3. Install dependencies using Composer:
+   ```bash
+   ddev composer install
+   ```
+
+4. Run tests to verify the setup:
+   ```bash
+   ddev exec ./vendor/bin/pest
+   ```
+
+5. Access your project:
+    - Web: Nothing (This is just a package and has no views or even routes).
+    - CLI: Use `ddev exec` for running commands in the container.
+
+---
 
 ## Testing
 
 ```bash
-composer test
+./vendor/bin/pest
 ```
-
-## Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+Contributions are welcome! Please follow these steps:
 
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [:author_name](https://github.com/:author_username)
-- [All Contributors](../../contributors)
+- Fork the repository.
+- Create a new branch for your feature or bugfix.
+- Write tests for your changes.
+- Submit a pull request.
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+This package is open-sourced software licensed under the MIT license.
